@@ -16,10 +16,14 @@ jobs:
         run: |
           sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
 
-      - name: Compile Feather (DEBUG)
+      - name: Unlock Entitlements UI
+        run: |
+          sed -i '' '/#if NIGHTLY || DEBUG/,/#endif/{/#if NIGHTLY || DEBUG/d;/#endif/d;}' Feather/Views/Signing/SigningView.swift
+
+      - name: Compile Feather
         run: | 
           agvtool new-version -all $(git rev-parse HEAD)
-          make SCHEME="feather (Debug)"
+          make
           mkdir upload
           mv packages/* upload/
 
