@@ -1,39 +1,31 @@
 name: Build Feather DEBUG
 
 on:
-  workflow_dispatch:  # Manual trigger button in GitHub UI
-  push:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-26  # or macos-26-xlarge for faster builds (paid)
-    
+    runs-on: macos-26
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          submodules: recursive
-
-      - name: Select Xcode
-        run: sudo xcode-select -switch /Applications/Xcode_26.4_beta_2.app
-        # Adjust Xcode version to match macos-26 runner — check:
-        # https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
-
-      - name: Show Xcode version
-        run: xcodebuild -version
-
-      - name: Install dependencies (if needed)
+          submodules: 'true'
+      
+      - name: Use Xcode 26.2
         run: |
-          brew install make
-          # Add any other deps Feather's Makefile needs
+          sudo xcode-select -s /Applications/Xcode_26.2.app/Contents/Developer
 
-      - name: Build DEBUG IPA
-        run: gmake package SCHEME="'feather (Debug)'"
+      - name: Compile Feather (DEBUG)
+        run: | 
+          agvtool new-version -all $(git rev-parse HEAD)
+          make SCHEME="feather (Debug)"
+          mkdir upload
+          mv packages/* upload/
 
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: Feather-DEBUG
-          path: packages/*.ipa
-          retention-days: 7
+          path: upload/*.ipa
+          retention-days: 14
